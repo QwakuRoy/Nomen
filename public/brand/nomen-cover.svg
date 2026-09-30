@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" font-family="Inter, Segoe UI, sans-serif">
+  <rect width="1920" height="1080" fill="#1E1B4B"/>
+  <!-- Logo -->
+  <g transform="translate(160 300) scale(1.25)">
+    <rect width="128" height="128" rx="28" fill="#2A2663"/>
+    <rect x="34" y="32" width="16" height="64" rx="3" fill="#F5F5F7"/>
+    <rect x="78" y="32" width="16" height="64" rx="3" fill="#F5F5F7"/>
+    <polygon points="34,32 50,32 94,96 78,96" fill="#7C5CFF"/>
+    <circle cx="98" cy="30" r="7" fill="#3DDC97"/>
+  </g>
+  <!-- Wordmark + tagline -->
+  <text x="160" y="610" fill="#F5F5F7" font-size="140" font-weight="700" letter-spacing="-4">Nomen</text>
+  <text x="164" y="690" fill="#B9B2FF" font-size="44" font-weight="500">Every layer, named with intent.</text>
+  <text x="164" y="770" fill="#8C88B8" font-size="30">Select a frame. Review the names. Rename in one click.</text>
+  <!-- Before / after layer panel -->
+  <g transform="translate(1080 220)">
+    <rect width="680" height="640" rx="28" fill="#15123A" stroke="#3A3478" stroke-width="2"/>
+    <text x="48" y="80" fill="#8C88B8" font-size="26" font-weight="600" letter-spacing="2">LAYERS</text>
+    <g font-size="32">
+      <text x="48" y="170" fill="#6F6A9E" text-decoration="line-through">Frame 128</text>
+      <text x="330" y="170" fill="#7C5CFF">→</text>
+      <text x="390" y="170" fill="#F5F5F7" font-weight="600">Product Card</text>
+      <text x="48" y="260" fill="#6F6A9E" text-decoration="line-through">Rectangle 18</text>
+      <text x="330" y="260" fill="#7C5CFF">→</text>
+      <text x="390" y="260" fill="#F5F5F7" font-weight="600">Product Image</text>
+      <text x="48" y="350" fill="#6F6A9E" text-decoration="line-through">Text 34</text>
+      <text x="330" y="350" fill="#7C5CFF">→</text>
+      <text x="390" y="350" fill="#F5F5F7" font-weight="600">Price</text>
+      <text x="48" y="440" fill="#6F6A9E" text-decoration="line-through">Frame 141</text>
+      <text x="330" y="440" fill="#7C5CFF">→</text>
+      <text x="390" y="440" fill="#F5F5F7" font-weight="600">Add to Cart</text>
+    </g>
+    <rect x="48" y="510" width="584" height="80" rx="16" fill="#6D4AFF"/>
+    <text x="340" y="562" fill="#FFFFFF" font-size="30" font-weight="600" text-anchor="middle">Rename 4 Layers</text>
+    <circle cx="620" cy="80" r="10" fill="#3DDC97"/>
+  </g>
+</svg>

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nomen · Semantic layer naming for Figma</title>
+    <meta name="description" content="Nomen is a Figma plugin that turns Frame 128, Rectangle 18 and Text 34 into Product Card, Product Image and Price, with a review step before anything changes." />
+    <link rel="icon" href="brand/nomen-icon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ink: #1e1b4b;
+        --ink-2: #15123a;
+        --ink-3: #2a2663;
+        --line: #3a3478;
+        --electric: #7c5cff;
+        --button: #6d4aff;
+        --button-hover: #5b38f0;
+        --lilac: #b9b2ff;
+        --mint: #3ddc97;
+        --paper: #f5f5f7;
+        --muted: #a6a2cc;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body { margin: 0; background: var(--ink); color: var(--paper); font: 16px/1.6 Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+      a { color: inherit; }
+      .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+      nav { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; }
+      .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; text-decoration: none; }
+      .brand img { width: 32px; height: 32px; }
+      nav .links { display: flex; gap: 24px; font-size: 14px; color: var(--muted); }
+      nav .links a { text-decoration: none; }
+      nav .links a:hover { color: var(--paper); }
+
+      .hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; padding: 72px 0 96px; }
+      .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--lilac); background: var(--ink-3); border: 1px solid var(--line); padding: 6px 12px; border-radius: 999px; }
+      .eyebrow i { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); display: inline-block; }
+      h1 { font-size: clamp(44px, 7vw, 84px); line-height: 1; letter-spacing: -0.04em; margin: 20px 0 16px; font-weight: 800; }
+      h1 span { color: var(--electric); }
+      .lede { font-size: 20px; color: var(--muted); max-width: 520px; margin: 0 0 32px; }
+      .ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+      .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 22px; border-radius: 12px; font-weight: 600; font-size: 15px; text-decoration: none; border: 1px solid var(--line); transition: background 0.15s; }
+      .btn.primary { background: var(--button); border-color: var(--button); color: #fff; }
+      .btn.primary:hover { background: var(--button-hover); }
+      .btn:not(.primary):hover { background: var(--ink-3); }
+
+      .panel { background: var(--ink-2); border: 1px solid var(--line); border-radius: 24px; padding: 28px; }
+      .panel .label { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+      .panel .label i { width: 10px; height: 10px; border-radius: 50%; background: var(--mint); }
+      .swap { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--ink-3); font-size: 17px; }
+      .swap:last-of-type { border-bottom: 0; }
+      .swap s { color: #6f6a9e; }
+      .swap b { color: var(--electric); font-weight: 600; }
+      .swap strong { font-weight: 600; }
+
+      section { padding: 88px 0; border-top: 1px solid var(--ink-3); }
+      h2 { font-size: clamp(30px, 4vw, 44px); letter-spacing: -0.03em; line-height: 1.1; margin: 0 0 12px; }
+      .sub { color: var(--muted); font-size: 18px; max-width: 640px; margin: 0 0 40px; }
+
+      .demo { display: grid; grid-template-columns: 380px 1fr; gap: 40px; align-items: start; }
+      .demo iframe { width: 380px; height: 600px; border: 0; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--line), 0 24px 60px rgba(0, 0, 0, 0.35); }
+      .picker { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; }
+      .picker button { font: inherit; font-size: 14px; font-weight: 500; color: var(--paper); background: var(--ink-3); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; cursor: pointer; }
+      .picker button[aria-pressed="true"] { background: var(--button); border-color: var(--button); }
+      ol.tips { margin: 0; padding-left: 20px; color: var(--muted); }
+      ol.tips li { margin-bottom: 10px; }
+      ol.tips strong { color: var(--paper); }
+      .note { margin-top: 24px; font-size: 14px; color: var(--muted); background: var(--ink-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+
+      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      .card { background: var(--ink-2); border: 1px solid var(--line); border-radius: 18px; padding: 24px; }
+      .card .num { width: 36px; height: 36px; border-radius: 10px; background: var(--ink-3); color: var(--electric); font-weight: 700; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+      .card h3 { margin: 0 0 8px; font-size: 19px; }
+      .card p { margin: 0; color: var(--muted); font-size: 15px; }
+
+      .install { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+      .install ol { margin: 0; padding-left: 22px; }
+      .install li { margin-bottom: 14px; }
+      code { font-family: ui-monospace, Consolas, monospace; font-size: 14px; background: var(--ink-3); border: 1px solid var(--line); padding: 2px 6px; border-radius: 6px; }
+
+      footer { padding: 40px 0 56px; border-top: 1px solid var(--ink-3); color: var(--muted); font-size: 14px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+
+      @media (max-width: 900px) {
+        .hero, .demo, .install { grid-template-columns: 1fr; }
+        .grid { grid-template-columns: 1fr; }
+        .demo iframe { width: 100%; max-width: 380px; }
+        nav .links { display: none; }
+        .hero { padding: 40px 0 64px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="wrap">
+      <nav>
+        <a class="brand" href="#"><img src="brand/nomen-icon.svg" alt="" />Nomen</a>
+        <div class="links">
+          <a href="#demo">Live demo</a>
+          <a href="#how">How it works</a>
+          <a href="#install">Install</a>
+          <a class="github-link" href="https://github.com/QwakuRoy/Nomen">GitHub</a>
+        </div>
+      </nav>
+
+      <div class="hero">
+        <div>
+          <span class="eyebrow"><i></i>Figma plugin · AI-assisted</span>
+          <h1>Every layer, named <span>with intent.</span></h1>
+          <p class="lede">
+            Nomen turns <strong>Frame 128</strong>, <strong>Rectangle 18</strong> and <strong>Text 34</strong> into names people
+            understand. You review every suggestion before anything in your file changes.
+          </p>
+          <div class="ctas">
+            <a class="btn primary" href="#demo">Try the live demo</a>
+            <a class="btn github-link" href="https://github.com/QwakuRoy/Nomen">View the code</a>
+          </div>
+        </div>
+        <div class="panel" aria-label="Example renames">
+          <div class="label">LAYERS <i></i></div>
+          <div class="swap"><s>Frame 128</s><b>→</b><strong>Product Card</strong></div>
+          <div class="swap"><s>Rectangle 18</s><b>→</b><strong>Product Image</strong></div>
+          <div class="swap"><s>Text 34</s><b>→</b><strong>Price</strong></div>
+          <div class="swap"><s>Frame 141</s><b>→</b><strong>Add to Cart Button</strong></div>
+          <div class="swap"><s>Vector 9</s><b>→</b><strong>Search Icon</strong></div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section id="demo">
+        <div class="wrap">
+          <h2>Try it right here</h2>
+          <p class="sub">This is the real Nomen plugin interface, running on a sample design instead of your Figma file.</p>
+          <div class="demo">
+            <iframe id="plugin" src="plugin/ui.html" title="Nomen plugin demo"></iframe>
+            <div>
+              <div class="picker" role="group" aria-label="Sample design">
+                <button data-design="checkout" aria-pressed="true">Checkout page</button>
+                <button data-design="wallet" aria-pressed="false">Wallet home</button>
+                <button data-design="both" aria-pressed="false">Both screens</button>
+              </div>
+              <ol class="tips">
+                <li><strong>Analyze Layers.</strong> Nomen finds every layer still carrying a Figma default name.</li>
+                <li><strong>Review.</strong> Confident names are pre-ticked. Best guesses sit under <em>Needs review</em>.</li>
+                <li><strong>Edit or untick</strong> anything you disagree with, or use <em>Select all</em> to accept everything.</li>
+                <li><strong>Rename.</strong> In Figma, the whole batch is one undo step.</li>
+              </ol>
+              <p class="note">
+                The demo runs Nomen's built-in rules. In Figma, adding an Anthropic API key switches on Claude, which reads the
+                whole design and produces context-aware names like “Payment Options Card”.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="how">
+        <div class="wrap">
+          <h2>How Nomen thinks</h2>
+          <p class="sub">A hybrid engine: fast rules for the obvious, AI for the ambiguous, and you for the final say.</p>
+          <div class="grid">
+            <div class="card">
+              <div class="num">1</div>
+              <h3>Finds the mess</h3>
+              <p>It only targets Figma default names like “Frame 12” or “Group 4 copy”. Names you chose on purpose are never touched.</p>
+            </div>
+            <div class="card">
+              <div class="num">2</div>
+              <h3>Understands purpose</h3>
+              <p>It reads text, component names, structure and siblings to name things by what they do: “Checkout Button”, not “Blue Rectangle”.</p>
+            </div>
+            <div class="card">
+              <div class="num">3</div>
+              <h3>Never surprises you</h3>
+              <p>Preview first, edit anything, one-click undo. If the AI fails or answers badly, your file stays exactly as it was.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="install">
+        <div class="wrap install">
+          <div>
+            <h2>Use it in Figma</h2>
+            <p class="sub">Nomen runs as a development plugin in the Figma desktop app. Setup takes about two minutes.</p>
+          </div>
+          <ol>
+            <li>Download the code from <a class="github-link" href="https://github.com/QwakuRoy/Nomen">GitHub</a> (<em>Code → Download ZIP</em>) and unzip it.</li>
+            <li>Open the <strong>Figma desktop app</strong> and any design file.</li>
+            <li>Go to <em>Menu → Plugins → Development → Import plugin from manifest…</em> and choose <code>manifest.json</code>.</li>
+            <li>Select a frame, then run <em>Plugins → Development → Nomen</em>.</li>
+            <li>Optional: add an Anthropic API key under the gear icon for AI naming.</li>
+          </ol>
+        </div>
+      </section>
+    </main>
+
+    <footer class="wrap">
+      <span>Nomen · Built with TypeScript and Claude</span>
+      <span>Druids Alpha · Cohort 1 · Assignment 1</span>
+    </footer>
+
+    <script src="demo.js"></script>
+  </body>
+</html>
