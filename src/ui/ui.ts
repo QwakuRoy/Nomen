@@ -9,7 +9,7 @@ import { icon, logo, typeIcon } from "./icons";
 
 // ---------- State ----------
 
-type View = "selection" | "settings" | "loading" | "preview" | "error" | "success";
+type View = "selection" | "settings" | "loading" | "preview" | "error" | "celebrate" | "success";
 type Filter = "all" | "suggested" | "review";
 type Row = RenameSuggestion & { review: boolean };
 
@@ -26,6 +26,8 @@ const state = {
   filter: "all" as Filter,
   error: { message: "", retryable: true },
   result: { renamed: 0, skipped: [] as { nodeId: string; name: string; reason: SkipReason }[] },
+  /** The rows sent for renaming, with the names they were given. Shown on the results screen. */
+  applied: [] as (Row & { newName: string })[],
   abort: null as AbortController | null,
 };
 
@@ -131,8 +133,10 @@ function cancel() {
 }
 
 function applyChanges() {
-  const changes = applicableRows().map((r) => ({ nodeId: r.nodeId, expectedCurrentName: r.currentName, name: r.proposedName.trim() }));
+  const rows = applicableRows();
+  const changes = rows.map((r) => ({ nodeId: r.nodeId, expectedCurrentName: r.currentName, name: r.proposedName.trim() }));
   if (changes.length === 0) return;
+  state.applied = rows.map((r) => ({ ...r, newName: r.proposedName.trim() }));
   send({ type: "apply", changes });
 }
 
@@ -502,28 +506,98 @@ const SKIP_REASONS: Record<SkipReason, string> = {
   error: "couldn't be renamed",
 };
 
-function successView(): Node[] {
+const CELEBRATE_MS = 1600;
+let celebrateTimer: ReturnType<typeof setTimeout> | undefined;
+
+function celebrateView(): Node[] {
   const { renamed, skipped } = state.result;
+  const skip = () => {
+    clearTimeout(celebrateTimer);
+    go("success");
+  };
   return [
     h(
       "div",
-      { class: "body" },
+      { class: "body celebrate", onClick: skip, title: "Click to see the renamed layers" },
       h(
         "div",
         { class: "center" },
-        h("div", { class: "glyph ok", html: icon.check }),
-        h("h2", {}, renamed > 0 ? `${plural(renamed, "layer")} renamed` : "No layers renamed"),
-        skipped.length ? h("p", {}, `${plural(skipped.length, "layer")} skipped`) : null,
-        renamed > 0 ? h("p", { class: "small" }, "Changed your mind? Undo in Figma with ⌘Z / Ctrl+Z.") : null,
-        skipped.length
-          ? h(
-              "ul",
-              { class: "skipped-list small" },
-              ...skipped.slice(0, 8).map((s) => h("li", {}, h("span", {}, s.name), h("span", { class: "muted" }, SKIP_REASONS[s.reason]))),
-            )
-          : null,
+        h("div", { class: "glyph ok burst", html: icon.check }),
+        h("h2", { class: "rise" }, `${plural(renamed, "layer")} renamed`),
+        skipped.length ? h("p", { class: "rise" }, `${plural(skipped.length, "layer")} skipped`) : null,
+        h("p", { class: "small rise" }, "Changed your mind? Undo in Figma with ⌘Z / Ctrl+Z."),
       ),
     ),
+  ];
+}
+
+function doneRow(row: RenameSuggestion & { newName: string }): HTMLElement {
+  return h(
+    "div",
+    { class: "row done" },
+    h("span", { class: "tick", html: icon.checkSmall }),
+    h("span", { class: "type", html: typeIcon(row.type), title: row.type.toLowerCase() }),
+    h(
+      "div",
+      { class: "names", style: `padding-left:${Math.min(Math.max(row.depth - 1, 0), 5) * 8}px` },
+      h("div", { class: "old", title: row.currentName }, h("s", {}, row.currentName)),
+      h("div", { class: "new-name", title: row.newName }, row.newName),
+    ),
+    h(
+      "div",
+      { class: "meta" },
+      h("button", { class: "icon-btn locate", title: "Show in canvas", "aria-label": "Show in canvas", html: icon.target, onClick: () => send({ type: "focus-node", nodeId: row.nodeId }) }),
+    ),
+  );
+}
+
+function successView(): Node[] {
+  const { renamed, skipped } = state.result;
+  const skippedIds = new Set(skipped.map((s) => s.nodeId));
+  const done = state.applied.filter((r) => !skippedIds.has(r.nodeId));
+
+  const list = h("div", {});
+  for (const plan of state.plans) {
+    const rows = done.filter((r) => r.rootId === plan.root.rootId);
+    if (rows.length === 0) continue;
+    if (state.plans.length > 1) {
+      list.append(
+        h(
+          "div",
+          { class: "group-head" },
+          h("span", { class: "type", html: typeIcon(plan.root.rootType) }),
+          h("span", { class: "name" }, plan.root.rootName),
+          h("span", { class: "muted" }, plural(rows.length, "layer")),
+        ),
+      );
+    }
+    for (const r of rows) list.append(doneRow(r));
+  }
+  if (skipped.length) {
+    list.append(
+      h("div", { class: "group-head" }, h("span", { class: "name" }, "Skipped"), h("span", { class: "muted" }, plural(skipped.length, "layer"))),
+      h(
+        "ul",
+        { class: "skipped-list small", style: "padding:0 12px" },
+        ...skipped.map((s) => h("li", {}, h("span", {}, s.name), h("span", { class: "muted" }, SKIP_REASONS[s.reason]))),
+      ),
+    );
+  }
+
+  const banner = h(
+    "div",
+    { class: `done-banner${renamed > 0 ? "" : " none"}` },
+    h("span", { class: "done-icon", html: renamed > 0 ? icon.check : icon.alert }),
+    h(
+      "div",
+      {},
+      h("strong", {}, renamed > 0 ? `${plural(renamed, "layer")} renamed` : "No layers renamed"),
+      h("div", { class: "muted small" }, renamed > 0 ? "Changed your mind? Undo in Figma with ⌘Z / Ctrl+Z." : "Nothing in your file was changed."),
+    ),
+  );
+
+  return [
+    h("div", { class: "body flush" }, h("div", { class: "toolbar done-toolbar" }, banner), list),
     h(
       "div",
       { class: "footer" },
@@ -586,6 +660,7 @@ function render() {
     loading: loadingView,
     preview: previewView,
     error: errorView,
+    celebrate: celebrateView,
     success: successView,
   };
   // Keep the preview scroll position across re-renders (tab switches, select all).
@@ -623,10 +698,24 @@ window.onmessage = (event: MessageEvent) => {
       state.result = { renamed: msg.renamed, skipped: msg.skipped };
       send({ type: "restore-selection" });
       if (msg.renamed > 0) send({ type: "notify", message: `${plural(msg.renamed, "layer")} renamed` });
-      go("success");
+      if (msg.renamed > 0) {
+        // A short full-panel moment that confirms the change, then the list of what changed.
+        go("celebrate");
+        clearTimeout(celebrateTimer);
+        celebrateTimer = setTimeout(() => state.view === "celebrate" && go("success"), CELEBRATE_MS);
+      } else {
+        go("success");
+      }
       break;
   }
 };
 
 render();
 send({ type: "ui-ready" });
+
+// If the host missed "ui-ready" (it can load after us), ask again until the selection arrives.
+let readyRetries = 0;
+const readyTimer = setInterval(() => {
+  if (state.selection.received || ++readyRetries > 10) clearInterval(readyTimer);
+  else send({ type: "ui-ready" });
+}, 500);

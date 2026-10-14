@@ -77,8 +77,60 @@ function sendSelection() {
   });
 }
 
+// ---------- Layers panel (mirrors Figma's, shows renames as they happen) ----------
+
+const layersEl = document.getElementById("layers");
+const fileTitleEl = document.getElementById("file-title");
+const canvasEl = document.getElementById("canvas");
+/** Names applied by the plugin in this run: id -> new name. Cleared on every restart. */
+const renamed = new Map();
+
+const GLYPHS = {
+  FRAME: '<path d="M5 2v12M11 2v12M2 5h12M2 11h12"/>',
+  GROUP: '<rect x="2.5" y="2.5" width="11" height="11" rx="1" stroke-dasharray="2 1.6"/>',
+  TEXT: '<path d="M3.5 3.5h9M8 3.5v9"/>',
+  RECTANGLE: '<rect x="3" y="3" width="10" height="10" rx="0.5"/>',
+  ELLIPSE: '<circle cx="8" cy="8" r="5"/>',
+  LINE: '<path d="M3 13 13 3"/>',
+  VECTOR: '<path d="M3 13c1-5 5-9 10-10"/>',
+  INSTANCE: '<path d="M8 2 14 8l-6 6-6-6 6-6Z"/>',
+};
+const glyph = (type) =>
+  `<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">${GLYPHS[type] ?? GLYPHS.RECTANGLE}</svg>`;
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+}
+
+function renderLayers() {
+  const rows = [];
+  const walk = (node, depth) => {
+    const name = renamed.get(node.id) ?? node.name;
+    const cls = renamed.has(node.id) ? "layer renamed" : "layer";
+    rows.push(
+      `<li class="${cls}" data-id="${node.id}" style="--depth:${depth}">${glyph(node.type)}<span>${escapeHtml(name)}</span></li>`,
+    );
+    node.children.forEach((c) => walk(c, depth + 1));
+  };
+  roots().forEach((r) => walk(r, 0));
+  layersEl.innerHTML = rows.join("");
+  fileTitleEl.textContent = roots().map((r) => r.name).join(" + ");
+  canvasEl.dataset.screens = String(roots().length);
+  canvasEl.querySelectorAll(".artboard-label").forEach((el, i) => (el.textContent = roots()[i]?.name ?? ""));
+}
+
+function highlight(nodeId) {
+  layersEl.querySelectorAll(".layer.focus").forEach((el) => el.classList.remove("focus"));
+  const row = layersEl.querySelector(`[data-id="${CSS.escape(nodeId)}"]`);
+  if (!row) return;
+  row.classList.add("focus");
+  row.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
 /** Start the demo over on the current design, with its original messy layer names. */
 function restart() {
+  renamed.clear();
+  renderLayers();
   // A unique URL guarantees a real reload, never a cached or skipped one.
   frame.src = `plugin/ui.html?run=${Date.now()}`;
 }
@@ -107,7 +159,12 @@ window.addEventListener("message", (e) => {
       setTimeout(() => post({ type: "scan-result", roots: roots().map((r) => ({ rootId: r.id, rootName: r.name, rootType: r.type, layers: flatten(r), truncated: false })) }), 500);
       break;
     case "apply":
+      msg.changes.forEach((c) => renamed.set(c.nodeId, c.name));
+      renderLayers();
       setTimeout(() => post({ type: "apply-result", renamed: msg.changes.length, skipped: [] }), 250);
+      break;
+    case "focus-node":
+      highlight(msg.nodeId);
       break;
     case "save-settings":
       settings = { ...settings, ...msg.settings };
@@ -122,7 +179,14 @@ window.addEventListener("message", (e) => {
 document.querySelectorAll("[data-design]").forEach((btn) =>
   btn.addEventListener("click", () => {
     scenario = btn.dataset.design;
-    document.querySelectorAll("[data-design]").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+    document.querySelectorAll("[data-design]").forEach((b) => b.setAttribute("aria-selected", String(b === btn)));
     restart();
   }),
 );
+
+renderLayers();
+
+// The plugin panel may have finished loading before this script ran, in which case its
+// "ready" message and load event were missed. Hand it the design now; if it isn't ready
+// yet, its own "ready" message (or its retry) will arrive and trigger the handshake again.
+if (frame.contentDocument?.readyState === "complete") handshake();
