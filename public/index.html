@@ -60,6 +60,10 @@
         background-size: 64px 64px; -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, #000 20%, transparent 75%); mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, #000 20%, transparent 75%); opacity: 0.55; }
       .hero::after { content: ""; position: absolute; left: 50%; top: -120px; width: 900px; height: 600px; transform: translateX(-50%); z-index: -1;
         background: radial-gradient(closest-side, rgba(124, 92, 255, 0.38), rgba(124, 92, 255, 0.08) 60%, transparent); filter: blur(10px); }
+      /* Faded design-tool illustration: the bottom layer, under the grid, the glow and the text. */
+      .hero-art { position: absolute; inset: 0; z-index: -3; pointer-events: none;
+        background: url(img/hero-interface.svg) center 28px / min(1520px, 130vw) auto no-repeat; opacity: 0.12; filter: blur(0.4px);
+        -webkit-mask-image: radial-gradient(ellipse 72% 62% at 50% 34%, #000 30%, transparent 80%); mask-image: radial-gradient(ellipse 72% 62% at 50% 34%, #000 30%, transparent 80%); }
       .chip { display: inline-flex; align-items: center; gap: 10px; padding: 6px 14px 6px 8px; border-radius: 999px; border: 1px solid var(--line-strong); background: rgba(27, 24, 70, 0.7); font-size: 13px; color: var(--muted); }
       .chip b { font: 600 11px/1 var(--mono); color: var(--paper); background: var(--button); padding: 5px 8px; border-radius: 999px; letter-spacing: 0.03em; }
       h1 { font-size: clamp(44px, 7.4vw, 92px); line-height: 0.98; letter-spacing: -0.045em; margin: 24px auto 20px; font-weight: 800; max-width: 900px; }
@@ -287,6 +291,7 @@
     <main id="top">
       <!-- ================= Hero ================= -->
       <div class="hero">
+        <div class="hero-art" aria-hidden="true"></div>
         <div class="wrap">
           <span class="chip"><b>NEW</b>Figma plugin · AI naming powered by Claude</span>
           <h1>Every layer, named <span>with intent.</span></h1>
